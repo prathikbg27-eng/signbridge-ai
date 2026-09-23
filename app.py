@@ -872,12 +872,18 @@ class BaseASRBackend:
 
 
 class WhisperASRBackend(BaseASRBackend):
-    def __init__(self, model_size: str = "small"):
+    def __init__(self, model_size: str = "base"):
         self.model_size = model_size
         self.name = f"Whisper ({model_size})"
 
     def transcribe(self, audio_bytes: bytes, preprocessed_audio: np.ndarray, language_code: str = None) -> tuple[str, str]:
-        model = load_whisper_model(self.model_size)
+        try:
+            model = load_whisper_model(self.model_size)
+        except Exception as exc:
+            raise RuntimeError(
+                f"Whisper model '{self.model_size}' could not be loaded. "
+                "Try the base or tiny model."
+            ) from exc
         transcribe_kwargs = {
             "task": "transcribe",
             "fp16": False,
@@ -913,7 +919,7 @@ class IndicASRBackend(BaseASRBackend):
 
 
 class ASRRouter:
-    def __init__(self, whisper_model_size: str = "small"):
+    def __init__(self, whisper_model_size: str = "base"):
         self.whisper_model_size = whisper_model_size
         self.whisper_backend = WhisperASRBackend(whisper_model_size)
         self.indic_backend = IndicASRBackend()
@@ -960,7 +966,7 @@ class ASRRouter:
 
 
 def transcribe_multilingual(
-    audio_bytes: bytes, language: str = None, model_size: str = "small"
+    audio_bytes: bytes, language: str = None, model_size: str = "base"
 ) -> tuple[str, str, dict, dict]:
     """Modular ASR Speech Recognition Entrypoint."""
     try:
@@ -1080,9 +1086,9 @@ else:
         st.header("⚙️ Settings")
         model_size = st.selectbox(
             "Whisper model size",
-            ["tiny", "base", "small", "medium"],
-            index=2,
-            help="Bigger = more accurate speech recognition. 'small' recommended.",
+            ["tiny", "base", "small"],
+            index=1,
+            help="Bigger = more accurate speech recognition. 'base' recommended.",
         )
 
         language = st.selectbox(
@@ -1328,6 +1334,9 @@ else:
                     )
                 except ValueError as exc:
                     st.warning(str(exc))
+                    transcript, detected_lang, debug_info, audio_diag = None, None, {}, {}
+                except RuntimeError as exc:
+                    st.error(str(exc))
                     transcript, detected_lang, debug_info, audio_diag = None, None, {}, {}
                 except Exception as exc:
                     st.error(f"Speech Recognition Error: {exc}")

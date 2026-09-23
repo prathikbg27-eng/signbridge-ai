@@ -67,14 +67,14 @@ def render_settings_view():
         st.markdown("<h4 style='font-size: 1.05rem; color: #0F172A; margin-bottom: 12px;'>Whisper ASR Configuration</h4>", unsafe_allow_html=True)
         model_size = st.selectbox(
             "Whisper Model Size",
-            ["tiny", "base", "small", "medium"],
-            index=2,
+            ["tiny", "base", "small"],
+            index=1,
             help="Larger models improve recognition accuracy on regional accents.",
             key="sys_whisper_size",
         )
         st.session_state["whisper_model_size"] = model_size
 
-        st.caption("Selected model: 'small' (Optimal balance of GPU/CPU speed & accuracy)")
+        st.caption("Selected model: 'base' (Optimal balance of speed & memory for cloud deployment)")
 
     with c2:
         st.markdown("<h4 style='font-size: 1.05rem; color: #0F172A; margin-bottom: 12px;'>Emotion Engine Diagnostics</h4>", unsafe_allow_html=True)

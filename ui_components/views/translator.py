@@ -244,7 +244,7 @@ def render_translator_view(
     # PROCESSING LOGIC (Whisper / Translation / Emotion / Signs)
     # --------------------------------------------------------------------------
     current_lang = st.session_state.get("selected_language", "Auto Detect")
-    model_size = st.session_state.get("whisper_model_size", "small")
+    model_size = st.session_state.get("whisper_model_size", "base")
 
     if voice_run and audio_bytes_to_process is not None:
         with st.spinner("Analyzing speech prosody, transcription & vocal emotion..."):
