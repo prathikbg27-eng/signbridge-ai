@@ -15,30 +15,9 @@ import streamlit.components.v1 as components
 import whisper
 
 from sign_to_speech import render_sign_to_speech_page
-from emotion_engine import (
-    load_all_emotion_models,
-    analyze_audio_emotion_multimodal,
-    ALL_SUPPORTED_EMOTIONS,
-)
-from ui_components.styles import get_modern_css
-from ui_components.shell import render_sidebar, render_top_bar
-from ui_components.views.home import render_home_view
-from ui_components.views.translator import render_translator_view
-from ui_components.views.live_conversation import render_live_conversation_view
-from ui_components.views.learn_isl import render_learn_isl_view
-from ui_components.views.emergency import render_emergency_view
-from ui_components.views.library import (
-    render_sign_library_view,
-    render_saved_phrases_view,
-    render_history_view,
-)
-from ui_components.views.accessibility import (
-    render_accessibility_view,
-    render_settings_view,
-)
 
 try:
-    from moviepy import VideoFileClip
+    from moviepy import VideoFileClip  # type: ignore
     MOVIEPY_AVAILABLE = True
 except Exception:
     MOVIEPY_AVAILABLE = False
@@ -88,34 +67,576 @@ SUPPORTED_LANGUAGES = {
     "te": "Telugu",
 }
 
-EMOTION_META = {
-    "HAPPY": {"emoji": "😊", "color": "#10b981", "desc": "Happy / Joyful", "bg": "linear-gradient(135deg, #064e3b, #047857)"},
-    "SAD": {"emoji": "😢", "color": "#3b82f6", "desc": "Sad / Subdued", "bg": "linear-gradient(135deg, #1e3a8a, #1d4ed8)"},
-    "ANGRY": {"emoji": "😠", "color": "#ef4444", "desc": "Angry / Frustrated", "bg": "linear-gradient(135deg, #7f1d1d, #b91c1c)"},
-    "FEAR": {"emoji": "😨", "color": "#8b5cf6", "desc": "Fearful / Anxious", "bg": "linear-gradient(135deg, #4c1d95, #6d28d9)"},
-    "SURPRISE": {"emoji": "😲", "color": "#06b6d4", "desc": "Surprised / Excited", "bg": "linear-gradient(135deg, #164e63, #0891b2)"},
-    "DISGUST": {"emoji": "🤢", "color": "#84cc16", "desc": "Disgusted / Aversive", "bg": "linear-gradient(135deg, #365314, #4d7c0f)"},
-    "NEUTRAL": {"emoji": "😐", "color": "#64748b", "desc": "Neutral / Calm", "bg": "linear-gradient(135deg, #0f172a, #1e293b)"},
-    "UNCERTAIN": {"emoji": "❓", "color": "#f59e0b", "desc": "Uncertain / Mixed", "bg": "linear-gradient(135deg, #451a03, #78350f)"},
-}
 
-
-@st.cache_resource(show_spinner=False)
-def get_cached_emotion_model():
-    """Caches the multimodal emotion recognition models (Speech wav2vec2 + NLP DistilRoBERTa) across Streamlit runs."""
-    return load_all_emotion_models()
-
-st.set_page_config(page_title="SIGNBRIDGE AI TEST - AI Communication For Everyone", page_icon="🤟", layout="wide")
+st.set_page_config(page_title="SIGNBRIDGE AI - AI Communication For Everyone", page_icon="🤟", layout="wide")
 
 # --------------------------------------------------------------------------
-# SIGNBRIDGE AI — Modern 2026 SaaS Light-First Theme
+# SIGNBRIDGE — GestureFlow Interface System
+# Futuristic Sign Language Communication Studio Design Language
 # --------------------------------------------------------------------------
 st.markdown(
-    get_modern_css(
-        high_contrast=st.session_state.get("high_contrast", False),
-        large_text=st.session_state.get("large_text", False),
-        reduced_motion=st.session_state.get("reduced_motion", False),
-    ),
+    """
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap');
+
+        :root {
+            --bg-canvas: #F7FAFF;
+            --bg-card: #FFFFFF;
+            --bg-card-subtle: #F8FAFD;
+            --bg-soft-blue: #EAF3FF;
+            --bg-soft-purple: #F3EEFF;
+            --bg-soft-mint: #ECFDF5;
+            --primary-blue: #2878F0;
+            --primary-blue-hover: #1D63D8;
+            --lavender: #8B5CF6;
+            --lavender-soft: #A78BFA;
+            --mint: #0D9488;
+            --emerald-badge: #059669;
+            --border-light: #DCE7F5;
+            --border-subtle: #E2EAF4;
+            --border-active: #BFDBFE;
+            --text-heading: #14213D;
+            --text-body: #1E293B;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --font-main: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-heading: 'Poppins', 'Plus Jakarta Sans', sans-serif;
+            --card-shadow: 0 10px 30px rgba(40, 120, 240, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+            --card-shadow-hover: 0 14px 38px rgba(40, 120, 240, 0.10), 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* Light Theme Canvas & Background Waves                                  */
+        /* ---------------------------------------------------------------------- */
+        .stApp {
+            background-color: var(--bg-canvas) !important;
+            background-image:
+                radial-gradient(circle at 10% 12%, rgba(234, 243, 255, 0.85) 0%, transparent 45%),
+                radial-gradient(circle at 90% 18%, rgba(243, 238, 255, 0.75) 0%, transparent 48%),
+                radial-gradient(circle at 50% 88%, rgba(230, 248, 245, 0.65) 0%, transparent 55%),
+                url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 70 Q35 45 70 70 T140 70' fill='none' stroke='rgba(40,120,240,0.035)' stroke-width='1.2'/%3E%3Cpath d='M0 35 Q70 10 140 35' fill='none' stroke='rgba(139,92,246,0.025)' stroke-width='1' stroke-dasharray='4,8'/%3E%3Ccircle cx='70' cy='70' r='1.5' fill='rgba(40,120,240,0.08)'/%3E%3C/svg%3E") !important;
+            background-attachment: fixed !important;
+            color: var(--text-body);
+            font-family: var(--font-main);
+            overflow-x: hidden !important;
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* Left Sidebar — Clean Light Design Rail                                 */
+        /* ---------------------------------------------------------------------- */
+        [data-testid="stSidebar"] {
+            background-color: #FFFFFF !important;
+            border-right: 1px solid var(--border-light) !important;
+            box-shadow: 4px 0 24px rgba(40, 120, 240, 0.04) !important;
+        }
+
+        [data-testid="stSidebar"] hr {
+            border-color: var(--border-light) !important;
+            margin: 18px 0 !important;
+        }
+
+        /* Sidebar Navigation Capsules */
+        [data-testid="stSidebar"] [data-testid="stRadio"] > div {
+            gap: 10px !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label {
+            background: #F8FAFD !important;
+            border: 1px solid var(--border-subtle) !important;
+            border-radius: 14px !important;
+            padding: 13px 16px !important;
+            color: var(--text-secondary) !important;
+            font-weight: 600 !important;
+            font-size: 0.90rem !important;
+            letter-spacing: 0.01em !important;
+            transition: all 0.22s ease !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            position: relative !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+            border-color: #BFDBFE !important;
+            color: var(--primary-blue) !important;
+            background: #F0F6FF !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(40, 120, 240, 0.08) !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label[data-checked="true"] {
+            background: linear-gradient(135deg, #EAF3FF 0%, #F3EEFF 100%) !important;
+            border: 1px solid #C8DEFC !important;
+            border-left: 4px solid var(--primary-blue) !important;
+            color: var(--primary-blue) !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 14px rgba(40, 120, 240, 0.12) !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label[data-checked="true"]::after {
+            content: "" !important;
+            position: absolute !important;
+            right: 14px !important;
+            width: 8px !important;
+            height: 8px !important;
+            border-radius: 50% !important;
+            background: var(--primary-blue) !important;
+            box-shadow: 0 0 10px rgba(40, 120, 240, 0.5) !important;
+            animation: radarPulseLight 2s infinite ease-in-out !important;
+        }
+
+        @keyframes radarPulseLight {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.35); opacity: 0.6; }
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* Brand Technology Identity Panel (Light)                                */
+        /* ---------------------------------------------------------------------- */
+        .identity-panel {
+            padding: 10px 4px 16px 4px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 16px;
+        }
+
+        .identity-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FF 100%);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 4px 16px rgba(40, 120, 240, 0.05);
+        }
+
+        .identity-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2878F0 0%, #8B5CF6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.45rem;
+            box-shadow: 0 4px 14px rgba(40, 120, 240, 0.25);
+            flex-shrink: 0;
+            color: #FFFFFF;
+        }
+
+        .identity-title {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 1.12rem;
+            color: var(--text-heading);
+            letter-spacing: -0.01em;
+            line-height: 1.15;
+        }
+
+        .identity-subtitle {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* Center Communication Flow Bridge (Light)                               */
+        /* ---------------------------------------------------------------------- */
+        .comm-flow-bridge {
+            margin: 0 0 22px 0;
+            padding: 14px 22px;
+            background: #FFFFFF;
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+        }
+
+        .flow-track {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .flow-node {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F8FAFD;
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--text-heading);
+        }
+
+        .flow-node.voice-node {
+            background: #EAF3FF;
+            border-color: #BFDBFE;
+            color: #1E40AF;
+        }
+
+        .flow-node.ai-node {
+            background: #F3EEFF;
+            border-color: #DDD6FE;
+            color: #6D28D9;
+        }
+
+        .flow-node.sign-node {
+            background: #ECFDF5;
+            border-color: #A7F3D0;
+            color: #047857;
+        }
+
+        .flow-node-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .flow-connector-line {
+            flex: 1;
+            min-width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, #93C5FD 0%, #C4B5FD 50%, #6EE7B7 100%);
+            position: relative;
+        }
+
+        .flow-connector-line::after {
+            content: "";
+            position: absolute;
+            top: -3px;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            box-shadow: 0 0 8px rgba(40, 120, 240, 0.6);
+            animation: packetTravelLight 3.5s infinite ease-in-out;
+        }
+
+        @keyframes packetTravelLight {
+            0% { left: 0%; opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { left: 100%; opacity: 0; }
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* AI Sign Avatar — Light Panel & Stage                                   */
+        /* ---------------------------------------------------------------------- */
+        .sign-stage-wrapper {
+            position: relative;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F4F8FF 100%);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 18px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        /* Soft circular background glow behind avatar */
+        .sign-stage-wrapper::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 12%;
+            right: 12%;
+            height: 140px;
+            background: radial-gradient(ellipse at bottom, rgba(40, 120, 240, 0.12) 0%, rgba(139, 92, 246, 0.06) 50%, transparent 75%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Gentle decorative rings */
+        .stage-orbital-ring {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 130px;
+            height: 130px;
+            border: 1px dashed rgba(40, 120, 240, 0.18);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: orbitalSpinLight 35s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes orbitalSpinLight {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stage-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stage-title {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.01em;
+            font-family: var(--font-heading);
+        }
+
+        .avatar-status-pill {
+            font-size: 0.74rem;
+            color: var(--primary-blue);
+            background: var(--bg-soft-blue);
+            padding: 4px 12px;
+            border-radius: 999px;
+            border: 1px solid #BFDBFE;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .avatar-status-dot {
+            width: 6.5px;
+            height: 6.5px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            box-shadow: 0 0 6px rgba(40, 120, 240, 0.5);
+            display: inline-block;
+            animation: radarPulseLight 2s infinite ease-in-out;
+        }
+
+        iframe {
+            border-radius: 18px !important;
+            border: 1px solid var(--border-light) !important;
+            box-shadow: 0 8px 24px rgba(40, 120, 240, 0.08) !important;
+            background: #FFFFFF !important;
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* Main Hero Card (Light Theme)                                           */
+        /* ---------------------------------------------------------------------- */
+        .hero-command-panel {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FF 100%);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            padding: 24px 28px;
+            margin-bottom: 22px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-command-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--lavender) 60%, #38BDF8 100%);
+        }
+
+        .capability-chip {
+            background: #F0F6FF;
+            color: var(--primary-blue);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            border: 1px solid var(--border-light);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.22s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .capability-chip:hover {
+            border-color: #BFDBFE;
+            background: #E4EFFF;
+            transform: translateY(-1.5px);
+            box-shadow: 0 4px 12px rgba(40, 120, 240, 0.12);
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* Voice Capture Console Framing (Light Theme)                            */
+        /* ---------------------------------------------------------------------- */
+        .voice-capture-console {
+            background: #FFFFFF;
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 18px;
+        }
+
+        /* Audio input component styling */
+        [data-testid="stAudioInput"] {
+            background: #FFFFFF !important;
+            border: 1px solid var(--border-light) !important;
+            border-radius: 18px !important;
+            padding: 14px !important;
+            box-shadow: 0 2px 10px rgba(40, 120, 240, 0.04) !important;
+            transition: all 0.22s ease !important;
+        }
+
+        [data-testid="stAudioInput"]:hover {
+            border-color: #BFDBFE !important;
+            box-shadow: 0 6px 18px rgba(40, 120, 240, 0.08) !important;
+        }
+
+        /* File Uploader compact input panel */
+        [data-testid="stFileUploader"] {
+            background: #F8FAFD !important;
+            border: 2px dashed #C8DEFC !important;
+            border-radius: 18px !important;
+            padding: 12px !important;
+            transition: all 0.22s ease !important;
+        }
+
+        [data-testid="stFileUploader"]:hover {
+            border-color: var(--primary-blue) !important;
+            background: #F0F6FF !important;
+        }
+
+        /* Buttons — Light Modern Styling */
+        .stButton > button {
+            border-radius: 12px !important;
+            font-family: var(--font-main) !important;
+            font-weight: 700 !important;
+            font-size: 0.90rem !important;
+            letter-spacing: 0.01em !important;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            border: 1px solid var(--border-light) !important;
+        }
+
+        .stButton > button[kind="primary"] {
+            background: linear-gradient(135deg, #2878F0 0%, #4F46E5 100%) !important;
+            border: 1px solid var(--primary-blue) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 6px 18px rgba(40, 120, 240, 0.22) !important;
+        }
+
+        .stButton > button[kind="primary"]:hover {
+            background: linear-gradient(135deg, #1D63D8 0%, #4338CA 100%) !important;
+            box-shadow: 0 8px 24px rgba(40, 120, 240, 0.32) !important;
+            transform: translateY(-1.5px) !important;
+        }
+
+        .stButton > button[kind="secondary"] {
+            background: #FFFFFF !important;
+            border: 1px solid var(--border-light) !important;
+            color: var(--text-heading) !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        .stButton > button[kind="secondary"]:hover {
+            background: #F0F6FF !important;
+            border-color: #BFDBFE !important;
+            color: var(--primary-blue) !important;
+            box-shadow: 0 4px 14px rgba(40, 120, 240, 0.10) !important;
+        }
+
+        /* Selectboxes & Text Inputs */
+        div[data-baseweb="select"] > div,
+        div[data-baseweb="input"] > div,
+        .stTextInput > div > div > input {
+            background-color: #FFFFFF !important;
+            border: 1px solid var(--border-light) !important;
+            color: var(--text-heading) !important;
+            border-radius: 12px !important;
+            font-family: var(--font-main) !important;
+            font-weight: 500 !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        }
+
+        div[data-baseweb="select"] > div:hover,
+        div[data-baseweb="input"] > div:hover,
+        .stTextInput > div > div > input:focus {
+            border-color: #BFDBFE !important;
+            box-shadow: 0 0 0 3px rgba(40, 120, 240, 0.12) !important;
+        }
+
+        /* Dropdown popover list items */
+        ul[data-baseweb="menu"] {
+            background-color: #FFFFFF !important;
+            border: 1px solid var(--border-light) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        li[data-baseweb="menu-item"] {
+            color: var(--text-heading) !important;
+        }
+
+        /* Expanders */
+        [data-testid="stExpander"] {
+            background-color: #FFFFFF !important;
+            border: 1px solid var(--border-light) !important;
+            border-radius: 16px !important;
+            box-shadow: var(--card-shadow) !important;
+        }
+
+        /* Dataframe styling */
+        [data-testid="stDataFrame"] {
+            background-color: #FFFFFF !important;
+            border: 1px solid var(--border-light) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+        }
+
+        /* Audio Player Styling */
+        audio {
+            border-radius: 12px;
+            width: 100%;
+            filter: drop-shadow(0 2px 8px rgba(40, 120, 240, 0.08));
+        }
+
+        /* Alert boxes */
+        .stAlert {
+            background-color: #EAF3FF !important;
+            border: 1px solid #BFDBFE !important;
+            color: #1E40AF !important;
+            border-radius: 14px !important;
+        }
+
+        /* Headings */
+        h1, h2, h3, h4 {
+            color: var(--text-heading) !important;
+            font-family: var(--font-heading) !important;
+            letter-spacing: -0.015em !important;
+        }
+
+        /* Responsive refinements */
+        @media (max-width: 768px) {
+            .hero-command-panel {
+                padding: 18px 20px;
+            }
+            .comm-flow-bridge {
+                padding: 12px 16px;
+            }
+            .flow-track {
+                gap: 8px;
+            }
+        }
+    </style>
+    """,
     unsafe_allow_html=True,
 )
 
@@ -313,7 +834,7 @@ def extract_audio_from_uploaded_file(file_bytes: bytes, file_name: str) -> bytes
 def bytes_to_audio_array(audio_bytes: bytes) -> tuple[np.ndarray, dict]:
     """Decode audio entirely in-memory with soundfile (libsndfile).
     Calculates diagnostic metrics, resamples to mono float32 16kHz,
-    and preprocesses for Whisper and Emotion DSP."""
+    and preprocesses for Whisper ASR."""
     data, sr = sf.read(io.BytesIO(audio_bytes), dtype="float32", always_2d=False)
     if data.ndim > 1:
         data = data.mean(axis=1)  # downmix to mono
@@ -440,8 +961,8 @@ class ASRRouter:
 
 def transcribe_multilingual(
     audio_bytes: bytes, language: str = None, model_size: str = "small"
-) -> tuple[str, str, dict, dict, dict]:
-    """Modular ASR + Multimodal Emotion Entrypoint."""
+) -> tuple[str, str, dict, dict]:
+    """Modular ASR Speech Recognition Entrypoint."""
     try:
         preprocessed_audio, audio_diag = bytes_to_audio_array(audio_bytes)
     except Exception as exc:
@@ -452,19 +973,13 @@ def transcribe_multilingual(
     if audio_diag["rms_amplitude"] < 0.005:
         raise ValueError("Audio volume is too low. Please record again closer to the microphone.")
 
-    # 1. Run Speech Transcription via Router
+    # Run Speech Transcription via Router
     router = ASRRouter(whisper_model_size=model_size)
     transcript, detected_lang, debug_info = router.route_and_transcribe(
         audio_bytes, preprocessed_audio, language=language
     )
 
-    # 2. Run Tri-Modal Emotion Analysis (Audio 50% + Text 30% + Prosody 20%)
-    emotion_model_tuple = get_cached_emotion_model()
-    emotion_data = analyze_audio_emotion_multimodal(
-        preprocessed_audio, sr=WHISPER_SR, transcript=transcript, models_tuple=emotion_model_tuple
-    )
-
-    return transcript, detected_lang, debug_info, audio_diag, emotion_data
+    return transcript, detected_lang, debug_info, audio_diag
 
 
 def translate_to_english(text: str, source_language: str = "auto") -> tuple[str, str]:
@@ -493,238 +1008,6 @@ def translate_to_english(text: str, source_language: str = "auto") -> tuple[str,
         raise RuntimeError(f"Translation failed: {exc}") from exc
 
 
-# --------------------------------------------------------------------------
-# Dynamic Emotion-Aware Avatar Renderer
-# --------------------------------------------------------------------------
-def render_avatar(text: str, emotion: str = "NEUTRAL", intensity: float = 40.0, confidence: float = 70.0) -> str:
-    """HTML / CSS procedural animated facial rig as fallback avatar."""
-    em_meta = EMOTION_META.get(emotion, EMOTION_META["NEUTRAL"])
-    emoji = em_meta["emoji"]
-    accent_color = em_meta["color"]
-    bg_gradient = em_meta["bg"]
-    safe_text = html.escape(text) if text else "Ready to communicate."
-
-    # Visual expression attributes
-    mouth_height = 10
-    mouth_radius = "0 0 16px 16px"
-    mouth_bg = "#d9485f"
-    eyebrow_left_rotate = "0deg"
-    eyebrow_right_rotate = "0deg"
-    eyebrow_top = "40px"
-    eye_scale_y = "1.0"
-    eye_scale_x = "1.0"
-    anim_speed = max(0.08, 0.20 - (intensity / 100.0) * 0.12)
-
-    if emotion == "HAPPY":
-        mouth_radius = "0 0 26px 26px / 0 0 20px 20px"
-        mouth_height = 16
-        eyebrow_left_rotate = "-10deg"
-        eyebrow_right_rotate = "10deg"
-        eyebrow_top = "38px"
-        eye_scale_y = "0.8"
-    elif emotion == "ANGRY":
-        mouth_radius = "4px"
-        mouth_height = 12
-        mouth_bg = "#b91c1c"
-        eyebrow_left_rotate = "25deg"
-        eyebrow_right_rotate = "-25deg"
-        eyebrow_top = "44px"
-    elif emotion == "SAD":
-        mouth_radius = "18px 18px 0 0 / 14px 14px 0 0"
-        mouth_height = 10
-        eyebrow_left_rotate = "-18deg"
-        eyebrow_right_rotate = "18deg"
-        eyebrow_top = "38px"
-        eye_scale_y = "0.7"
-    elif emotion == "FEAR":
-        mouth_radius = "8px"
-        mouth_height = 14
-        eyebrow_left_rotate = "-22deg"
-        eyebrow_right_rotate = "22deg"
-        eyebrow_top = "36px"
-        eye_scale_y = "1.3"
-        eye_scale_x = "1.2"
-    elif emotion == "SURPRISE":
-        mouth_radius = "50%"
-        mouth_height = 24
-        eyebrow_left_rotate = "-12deg"
-        eyebrow_right_rotate = "12deg"
-        eyebrow_top = "32px"
-        eye_scale_y = "1.4"
-        eye_scale_x = "1.3"
-    elif emotion == "DISGUST":
-        mouth_radius = "0 14px 0 14px"
-        mouth_height = 12
-        eyebrow_left_rotate = "15deg"
-        eyebrow_right_rotate = "-8deg"
-        eyebrow_top = "42px"
-
-    return f"""
-    <style>
-        .avatar-shell {{
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: {bg_gradient};
-            border-radius: 22px;
-            padding: 20px 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-            border: 2px solid {accent_color}55;
-            position: relative;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }}
-
-        .emotion-badge {{
-            position: absolute;
-            top: 12px;
-            right: 14px;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid {accent_color};
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(8px);
-        }}
-
-        .avatar-wrap {{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }}
-
-        .avatar {{
-            position: relative;
-            width: 180px;
-            height: 220px;
-        }}
-
-        .head {{
-            position: absolute;
-            left: 50%;
-            top: 18px;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 120px;
-            background: #f7d7b5;
-            border-radius: 50%;
-            border: 4px solid #2d3748;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }}
-
-        .hair {{
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 122px;
-            height: 36px;
-            background: #2b1d17;
-            border-radius: 60px 60px 18px 18px;
-        }}
-
-        .eyebrow {{
-            position: absolute;
-            width: 22px;
-            height: 5px;
-            background: #2b1d17;
-            border-radius: 3px;
-            top: {eyebrow_top};
-            transition: all 0.2s ease;
-        }}
-
-        .eyebrow.left {{ left: 24px; transform: rotate({eyebrow_left_rotate}); }}
-        .eyebrow.right {{ right: 24px; transform: rotate({eyebrow_right_rotate}); }}
-
-        .eye {{
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #111827;
-            border-radius: 50%;
-            top: 52px;
-            transform: scale({eye_scale_x}, {eye_scale_y});
-            transition: all 0.2s ease;
-        }}
-
-        .eye.left {{ left: 30px; }}
-        .eye.right {{ right: 30px; }}
-
-        .mouth {{
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 16px;
-            width: 58px;
-            height: {mouth_height}px;
-            background: {mouth_bg};
-            border-radius: {mouth_radius};
-            transition: all 0.15s ease;
-        }}
-
-        .body {{
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 96px;
-            height: 86px;
-            background: {accent_color};
-            border-radius: 18px 18px 10px 10px;
-            border: 4px solid #2d3748;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }}
-
-        .caption {{
-            margin-top: 14px;
-            color: #f8fafc;
-            font-size: 13px;
-            text-align: center;
-            opacity: 0.95;
-            max-width: 280px;
-            word-wrap: break-word;
-            font-weight: 500;
-        }}
-    </style>
-
-    <div class="avatar-shell">
-        <div class="emotion-badge">
-            <span>{emoji} {emotion}</span>
-            <span style="opacity:0.75; font-size:10px;">| {int(intensity)}% int.</span>
-        </div>
-        <div class="avatar-wrap">
-            <div class="avatar">
-                <div class="head">
-                    <div class="hair"></div>
-                    <div class="eyebrow left"></div>
-                    <div class="eyebrow right"></div>
-                    <div class="eye left"></div>
-                    <div class="eye right"></div>
-                    <div class="mouth" id="avatar-mouth"></div>
-                </div>
-                <div class="body"></div>
-            </div>
-            <div class="caption">{safe_text[:120]}</div>
-        </div>
-    </div>
-
-    <script>
-        const mouth = document.getElementById('avatar-mouth');
-        let step = 0;
-        const baseH = {mouth_height};
-        setInterval(() => {{
-            const mod = ((Math.sin(step) + 1) * {4 + (intensity / 20.0)});
-            mouth.style.height = (baseH + mod) + 'px';
-            step += 0.45;
-        }}, {int(anim_speed * 1000)});
-    </script>
-    """
 
 
 # --------------------------------------------------------------------------
@@ -734,73 +1017,438 @@ if "history" not in st.session_state:
     st.session_state.history = []
 
 # --------------------------------------------------------------------------
-# Modern Navigation Router & Views
 # --------------------------------------------------------------------------
-if "nav_page" not in st.session_state:
-    st.session_state["nav_page"] = "🏠 Home"
-
-db_df = load_sign_database(DB_PATH)
-
-# Render Global Clean Sidebar
-render_sidebar()
-
-# Page routing map
-current_page = st.session_state.get("nav_page", "🏠 Home")
-
-PAGE_METADATA = {
-    "🏠 Home": ("Welcome to SignBridge AI", "Make communication accessible with an intelligent 3D human avatar."),
-    "⚡ Translate": ("Intelligent Translator", "Multilingual speech and text to Indian Sign Language with 3D human avatar."),
-    "💬 Live Conversation": ("Live Conversation", "Communicate naturally in both directions with speech and signing."),
-    "📷 SignVision": ("SignVision", "Real-time visual sign recognition powered by MediaPipe."),
-    "🎓 Learn ISL": ("Learn Indian Sign Language", "Master everyday signs through guided practice and milestones."),
-    "🚨 Emergency": ("Emergency Assist", "Essential communication when every second matters."),
-    "🕘 History": ("Activity Timeline", "Chronological history of recent translations and interactions."),
-    "⭐ Saved Phrases": ("Phrasebook", "Instant access and replay for essential saved phrases."),
-    "📖 Sign Library": ("Sign Library", "Search and explore 500+ Indian Sign Language vocabulary concepts."),
-    "♿ Accessibility": ("Accessibility Suite", "Customizable presentation and assistive controls."),
-    "⚙️ Settings": ("System & Model Settings", "Configure speech recognition and diagnostics."),
-}
-
-title, subtitle = PAGE_METADATA.get(current_page, ("SignBridge AI", ""))
-render_top_bar(title, subtitle)
-
-if current_page == "🏠 Home":
-    render_home_view()
-
-elif current_page == "⚡ Translate":
-    render_translator_view(
-        transcribe_fn=transcribe_multilingual,
-        translate_fn=translate_to_english,
-        clean_tokens_fn=clean_tokens,
-        words_to_signs_fn=words_to_signs,
-        extract_audio_fn=extract_audio_from_uploaded_file,
-        db_df=db_df,
-        emotion_cache_fn=get_cached_emotion_model,
+# Mode Navigation & Sidebar
+# --------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown(
+        """
+        <div class="identity-panel">
+            <div class="identity-card">
+                <span class="corner-tick tick-tl"></span>
+                <span class="corner-tick tick-tr"></span>
+                <span class="corner-tick tick-bl"></span>
+                <span class="corner-tick tick-br"></span>
+                <div class="identity-icon-box">
+                    🤟
+                </div>
+                <div>
+                    <div class="identity-title">
+                        SIGNBRIDGE AI
+                    </div>
+                    <div class="identity-subtitle">
+                        AI Communication For Everyone
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px; margin-bottom: 8px;">
+            <span style="font-size:0.72rem; font-weight:700; color:#2878F0; letter-spacing:0.08em; text-transform:uppercase;">
+                NAVIGATION
+            </span>
+            <span style="font-size:0.68rem; color:#64748B; font-weight:600; letter-spacing:0.04em;">
+                STUDIO V2
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
+    app_mode = st.radio(
+        "Select Feature Mode",
+        ["🎙️ Speech → Sign", "🤟 Sign → Speech"],
+        index=0,
+        label_visibility="collapsed",
+    )
+    st.divider()
 
-elif current_page == "💬 Live Conversation":
-    render_live_conversation_view()
+if app_mode == "🤟 Sign → Speech":
+    with st.sidebar:
+        st.markdown("### ℹ️ Sign → Speech Guide")
+        st.info(
+            "**Quick Instructions:**\n\n"
+            "1. Allow webcam access when prompted.\n"
+            "2. Keep your hand visible in camera frame.\n"
+            "3. Perform any of the 24 Everyday Signs.\n"
+            "4. Hear the instant spoken voice and see text!"
+        )
+        st.caption("⚡ Powered by MediaPipe Hands + Web Speech API")
 
-elif current_page == "📷 SignVision":
     render_sign_to_speech_page()
 
-elif current_page == "🎓 Learn ISL":
-    render_learn_isl_view()
+else:
+    with st.sidebar:
+        st.header("⚙️ Settings")
+        model_size = st.selectbox(
+            "Whisper model size",
+            ["tiny", "base", "small", "medium"],
+            index=2,
+            help="Bigger = more accurate speech recognition. 'small' recommended.",
+        )
 
-elif current_page == "🚨 Emergency":
-    render_emergency_view()
+        language = st.selectbox(
+            "Speech Language",
+            [
+                "Auto Detect",
+                "English",
+                "Hindi",
+                "Gujarati",
+                "Kannada",
+                "Tamil",
+                "Telugu",
+            ],
+            index=0,
+        )
+        st.caption("Select your spoken language or leave on Auto Detect.")
 
-elif current_page == "📖 Sign Library":
-    render_sign_library_view(db_df)
+        st.divider()
 
-elif current_page == "⭐ Saved Phrases":
-    render_saved_phrases_view()
+        st.divider()
+        st.header("📖 Sign database")
+        db_df = load_sign_database(DB_PATH)
+        st.caption(f"{len(db_df)} words currently mapped to a sign.")
+        search = st.text_input("Search a word")
+        if search:
+            matches = db_df[db_df["word"].str.contains(search.lower(), na=False)]
+            st.dataframe(matches, hide_index=True, use_container_width=True)
 
-elif current_page == "🕘 History":
-    render_history_view()
+        with st.expander("➕ Add a custom word / sign"):
+            new_word = st.text_input("Word", key="new_word")
+            new_sign = st.text_input("Sign (emoji)", key="new_sign")
+            new_cat = st.text_input("Category", value="custom", key="new_cat")
+            if st.button("Add to database"):
+                if new_word and new_sign:
+                    updated = pd.concat(
+                        [db_df, pd.DataFrame([{"word": new_word.lower().strip(), "sign": new_sign, "category": new_cat}])],
+                        ignore_index=True,
+                    ).drop_duplicates(subset="word", keep="last")
+                    updated.to_csv(DB_PATH, index=False)
+                    load_sign_database.clear()
+                    st.success(f"Added '{new_word}' -> {new_sign}")
+                    st.rerun()
+                else:
+                    st.warning("Enter both a word and a sign first.")
 
-elif current_page == "♿ Accessibility":
-    render_accessibility_view()
+        if st.button("🗑️ Clear history"):
+            st.session_state.history = []
+            st.rerun()
 
-elif current_page == "⚙️ Settings":
-    render_settings_view()
+    # Top Product Bar
+    st.markdown(
+        """
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 16px; margin-bottom: 18px; box-shadow: var(--card-shadow);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 0.88rem; font-weight: 800; color: #14213D; letter-spacing: 0.02em; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
+                    <span style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #2878F0 0%, #8B5CF6 100%); color: #FFFFFF; font-size: 0.95rem;">🤟</span> SIGNBRIDGE AI
+                </span>
+                <span style="color: #DCE7F5; font-size: 1.0rem;">|</span>
+                <span style="font-size: 0.78rem; color: #64748B; font-weight: 500; letter-spacing: 0.01em;">
+                    Two-Way AI Accessibility Platform
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #ECFDF5; border: 1px solid #A7F3D0; padding: 5px 14px; border-radius: 999px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.08);">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                <span style="font-size: 0.72rem; font-weight: 800; color: #047857; letter-spacing: 0.06em;">AI SYSTEM ONLINE</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Speech to Sign Hero Card — "Communication Command Panel"
+    st.markdown(
+        """
+        <div class="hero-command-panel">
+            <span class="corner-tick tick-tl"></span>
+            <span class="corner-tick tick-tr"></span>
+            <span class="corner-tick tick-bl"></span>
+            <span class="corner-tick tick-br"></span>
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; position: relative; z-index: 1;">
+                <div style="max-width: 680px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.25rem;">🤟</span>
+                        <span style="font-size: 0.76rem; font-weight: 800; color: #2878F0; letter-spacing: 0.08em; text-transform: uppercase;">SPEECH TO SIGN</span>
+                        <span style="background: #EAF3FF; color: #2878F0; font-size: 0.68rem; padding: 3px 10px; border-radius: 6px; font-weight: 700; border: 1px solid #BFDBFE;">GESTUREFLOW STUDIO</span>
+                    </div>
+                    <h1 style="margin: 0; font-size: 1.95rem; color: #14213D; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; font-family: var(--font-heading);">
+                        Breaking communication <span style="background: linear-gradient(135deg, #2878F0 0%, #8B5CF6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">barriers with AI</span>
+                    </h1>
+                    <p style="margin: 10px 0 0 0; color: #64748B; font-size: 0.94rem; line-height: 1.6;">
+                        Convert speech into expressive sign language using AI-powered speech recognition, translation, and a human-like 3D avatar.
+                    </p>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                    <span class="capability-chip">⚡ Whisper ASR</span>
+                    <span class="capability-chip">🌐 Multilingual</span>
+                    <span class="capability-chip">🤟 Sign Translation</span>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Center Communication Flow Decorative Bridge
+    st.markdown(
+        """
+        <div class="comm-flow-bridge">
+            <div class="flow-track">
+                <div class="flow-node voice-node">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #2878F0; color: #FFFFFF; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(40,120,240,0.35);">🎙️</span>
+                    <span>VOICE INPUT</span>
+                </div>
+                <div class="flow-connector-line"></div>
+                <div class="flow-node ai-node">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #8B5CF6; color: #FFFFFF; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(139,92,246,0.35);">🧠</span>
+                    <span>AI UNDERSTANDING</span>
+                </div>
+                <div class="flow-connector-line"></div>
+                <div class="flow-node sign-node">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #10B981; color: #FFFFFF; font-size: 0.72rem; box-shadow: 0 2px 8px rgba(16,185,129,0.35);">🤟</span>
+                    <span>SIGN LANGUAGE</span>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    col_input, col_output = st.columns([1, 1.4], gap="large")
+
+    with col_input:
+        st.markdown(
+            """
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #14213D; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
+                    <span>🎙️</span> Voice Input
+                </h3>
+                <span style="font-size: 0.74rem; color: #047857; background: #ECFDF5; padding: 4px 12px; border-radius: 999px; border: 1px solid #A7F3D0; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10B981; display: inline-block;"></span>● Ready to listen
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        audio_value = st.audio_input("Record your speech")
+        uploaded_file = st.file_uploader(
+            "OR UPLOAD AUDIO / VIDEO (WAV, FLAC, OGG, MP3, MP4, MOV, AVI, WEBM)",
+            type=["wav", "flac", "ogg", "mp3", "mp4", "mov", "avi", "webm", "mkv"],
+        )
+
+        raw_uploaded_bytes = None
+        file_name = ""
+        if audio_value is not None:
+            raw_uploaded_bytes = audio_value.getvalue()
+            file_name = "mic_recording.wav"
+        elif uploaded_file is not None:
+            raw_uploaded_bytes = uploaded_file.getvalue()
+            file_name = uploaded_file.name
+
+        audio_bytes = None
+        if raw_uploaded_bytes is not None:
+            try:
+                audio_bytes = extract_audio_from_uploaded_file(raw_uploaded_bytes, file_name)
+            except Exception as vid_err:
+                st.error(f"Error extracting audio: {vid_err}")
+                audio_bytes = None
+
+        if audio_bytes is not None:
+            st.markdown("**Audio Playback:**")
+            st.audio(audio_bytes)
+
+        run = st.button("✨ Convert to Signs ➡️", type="primary", disabled=audio_bytes is None, use_container_width=True)
+
+    with col_output:
+        st.markdown(
+            """
+            <div class="stage-header">
+                <h3 class="stage-title">
+                    <span>👤</span> AI Sign Avatar
+                </h3>
+                <span class="avatar-status-pill">
+                    <span class="avatar-status-dot"></span>● Avatar Ready
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Determine 3D Avatar State & URL
+        if st.session_state.history:
+            item = st.session_state.history[0]
+            if isinstance(item, dict):
+                transcript = item["transcript"]
+                english_text = item["english_text"]
+                display_lang = item.get("display_lang", "English")
+                signs_df = item["signs_df"]
+                coverage = item["coverage"]
+                is_translated = item.get("is_translated", False)
+                trans_backend = item.get("trans_backend", "IndicTrans / Google Translator")
+            else:
+                transcript, signs_df, coverage = item
+                english_text = transcript
+                display_lang = "English"
+                is_translated = False
+                trans_backend = "None"
+
+            encoded_text = urllib.parse.quote(english_text)
+            react_url = (
+                f"https://ai-avatar-jade-zeta.vercel.app/?text={encoded_text}"
+                f"&speed=0.10&pause=800&emotion=neutral&intensity=40"
+            )
+        else:
+            react_url = (
+                "https://ai-avatar-jade-zeta.vercel.app/?text=Hello"
+                "&speed=0.10&pause=800&emotion=neutral&intensity=40"
+            )
+
+        # Sign Stage Holographic Frame
+        st.markdown(
+            """
+            <div class="sign-stage-wrapper">
+                <span class="corner-tick tick-tl"></span>
+                <span class="corner-tick tick-tr"></span>
+                <span class="corner-tick tick-bl"></span>
+                <span class="corner-tick tick-br"></span>
+                <div class="stage-orbital-ring"></div>
+                <div class="stage-grid-floor"></div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if hasattr(st, "iframe"):
+            st.iframe(react_url, width=800, height=560)
+        else:
+            components.iframe(react_url, width=800, height=560)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        if run and audio_bytes is not None:
+            with st.spinner("Transcribing speech with Whisper..."):
+                try:
+                    transcript, detected_lang, debug_info, audio_diag = transcribe_multilingual(
+                        audio_bytes, language=language, model_size=model_size
+                    )
+                except ValueError as exc:
+                    st.warning(str(exc))
+                    transcript, detected_lang, debug_info, audio_diag = None, None, {}, {}
+                except Exception as exc:
+                    st.error(f"Speech Recognition Error: {exc}")
+                    transcript, detected_lang, debug_info, audio_diag = None, None, {}, {}
+
+            if transcript == "":
+                st.warning("Didn't catch any speech in that clip — try again.")
+            elif transcript:
+                lang_code = detected_lang or (LANGUAGE_MAP.get(language) if language != "Auto Detect" else None)
+                display_lang = CODE_TO_LANGUAGE.get(
+                    lang_code, language if language != "Auto Detect" else (lang_code.title() if lang_code else "English")
+                )
+
+                is_english = (lang_code == "en") or (language == "English")
+                english_text = transcript
+                trans_backend = "None (English Speech)"
+                is_translated = False
+
+                if not is_english:
+                    with st.spinner("Translating speech to English..."):
+                        try:
+                            english_text, trans_backend = translate_to_english(transcript, source_language=lang_code or language)
+                            is_translated = english_text.strip().lower() != transcript.strip().lower()
+                        except Exception as exc:
+                            st.warning(f"Translation warning: {exc}. Using original transcript.")
+                            english_text = transcript
+                            trans_backend = f"Error ({exc})"
+                            is_translated = False
+
+                tokens = clean_tokens(english_text)
+                signs_df, coverage = words_to_signs(tokens, db_df)
+                st.session_state.history.insert(
+                    0,
+                    {
+                        "transcript": transcript,
+                        "english_text": english_text,
+                        "display_lang": display_lang,
+                        "debug_info": debug_info,
+                        "audio_diag": audio_diag,
+                        "trans_backend": trans_backend,
+                        "model_size": model_size,
+                        "signs_df": signs_df,
+                        "coverage": coverage,
+                        "is_translated": is_translated,
+                    },
+                )
+                st.rerun()
+
+        if st.session_state.history:
+            item = st.session_state.history[0]
+            if isinstance(item, dict):
+                transcript = item["transcript"]
+                english_text = item["english_text"]
+                display_lang = item.get("display_lang", "English")
+                signs_df = item["signs_df"]
+                coverage = item["coverage"]
+                is_translated = item.get("is_translated", False)
+                trans_backend = item.get("trans_backend", "IndicTrans / Google Translator")
+            else:
+                transcript, signs_df, coverage = item
+                english_text = transcript
+                display_lang = "English"
+                is_translated = False
+                trans_backend = "None"
+
+            # Recognized Speech Card (Light Theme)
+            st.markdown(
+                f"""
+                <div style="background: #FFFFFF; border: 1px solid #DCE7F5; border-radius: 20px; padding: 18px 22px; margin-bottom: 14px; box-shadow: 0 10px 30px rgba(40, 120, 240, 0.08);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.76rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.08em;">Recognized Speech</span>
+                        <span style="font-size: 0.72rem; color: #2878F0; background: #EAF3FF; padding: 3px 10px; border-radius: 6px; border: 1px solid #BFDBFE; font-weight: 700;">{display_lang}</span>
+                    </div>
+                    <div style="font-size: 1.18rem; font-weight: 600; color: #14213D; line-height: 1.45;">"{transcript}"</div>
+                    {f'<div style="font-size: 0.90rem; color: #2878F0; margin-top: 6px; font-weight: 500;"><b>English:</b> "{english_text}"</div>' if is_translated else ''}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.progress(coverage / 100, text=f"{coverage:.0f}% of words mapped directly to sign animations")
+
+            n_cols = 6
+            rows_needed = int(np.ceil(len(signs_df) / n_cols)) if len(signs_df) else 0
+            idx = 0
+            for _ in range(rows_needed):
+                cols = st.columns(n_cols)
+                for c in cols:
+                    if idx >= len(signs_df):
+                        break
+                    row = signs_df.iloc[idx]
+                    with c:
+                        st.markdown(
+                            f"""
+                            <div style="background: #FFFFFF; border: 1px solid #DCE7F5; border-radius: 14px; padding: 12px 6px; text-align: center; margin-bottom: 8px; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(40, 120, 240, 0.05);">
+                                <div style="font-size: 1.85rem; margin-bottom: 4px;">{row['sign']}</div>
+                                <div style="font-size: 0.76rem; font-weight: 700; color: #2878F0; text-transform: uppercase; letter-spacing: 0.04em;">{row['word']}</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                    idx += 1
+
+            with st.expander("Show as table"):
+                st.dataframe(signs_df, hide_index=True, use_container_width=True)
+        else:
+            st.info("Record audio or upload an audio/video file, then press 'Convert to signs'.")
+
+    if len(st.session_state.history) > 1:
+        st.divider()
+        st.subheader("🕘 History")
+        for item in st.session_state.history[1:]:
+            if isinstance(item, dict):
+                hist_orig = item["transcript"]
+                hist_eng = item["english_text"]
+                hist_signs = item["signs_df"]
+                hist_cov = item["coverage"]
+                label = hist_eng if hist_eng != hist_orig else hist_orig
+            else:
+                hist_orig, hist_signs, hist_cov = item
+                label = hist_orig
+            with st.expander(f"{label[:50]}{'...' if len(label) > 50 else ''}"):
+                st.write("".join(hist_signs["sign"].tolist()))
+                st.caption(f"{hist_cov:.0f}% direct match")

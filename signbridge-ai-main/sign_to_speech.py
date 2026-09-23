@@ -274,25 +274,25 @@ def render_sign_to_speech_component():
         
         <style>
             :root {{
-                --bg-main: #F6F8FC;
+                --bg-main: #F7FAFF;
                 --bg-card: #FFFFFF;
-                --bg-panel: #F8FAFC;
-                --bg-info: rgba(91, 92, 235, 0.08);
-                --border-info: #E5E7EB;
-                --border-color: #E5E7EB;
-                --border-secondary: #E5E7EB;
-                --accent-primary: #5B5CEB;
-                --accent-primary-hover: #4F46E5;
-                --accent-blue: #5B5CEB;
-                --accent-cyan: #14B8A6;
+                --bg-panel: #F1F6FD;
+                --bg-info: #EAF3FF;
+                --border-info: #BFDBFE;
+                --border-color: #DCE7F5;
+                --border-secondary: #E2E8F0;
+                --accent-primary: #2878F0;
+                --accent-primary-hover: #1D63D3;
+                --accent-blue: #2878F0;
+                --accent-cyan: #0284C7;
                 --accent-emerald: #10B981;
                 --accent-amber: #F59E0B;
                 --accent-rose: #EF4444;
                 --accent-purple: #8B5CF6;
-                --text-primary: #0F172A;
+                --text-primary: #14213D;
                 --text-secondary: #64748B;
                 --text-muted: #94A3B8;
-                --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 --font-mono: 'JetBrains Mono', monospace;
             }}
 
@@ -759,14 +759,14 @@ def render_sign_to_speech_component():
                =================================================== */
             .teach-card {{
                 grid-column: 1 / -1;
-                background: linear-gradient(135deg, #10192A 0%, #151D33 100%);
-                border: 1px solid #2B3D5B;
-                border-radius: 16px;
+                background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FF 100%);
+                border: 1px solid #DCE7F5;
+                border-radius: 20px;
                 padding: 20px 24px;
                 display: flex;
                 flex-direction: column;
                 gap: 18px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                box-shadow: 0 4px 20px rgba(40, 120, 240, 0.06);
             }}
 
             .teach-card.highlight-recording {{
@@ -808,13 +808,13 @@ def render_sign_to_speech_component():
             .teach-label {{
                 font-size: 0.84rem;
                 font-weight: 600;
-                color: #CBD5E1;
+                color: #14213D;
             }}
 
             .teach-input {{
-                background: #0B121E;
-                border: 1px solid #28374E;
-                color: #F8FAFC;
+                background: #FFFFFF;
+                border: 1px solid #DCE7F5;
+                color: #14213D;
                 padding: 10px 14px;
                 border-radius: 8px;
                 font-size: 0.92rem;
@@ -825,12 +825,12 @@ def render_sign_to_speech_component():
 
             .teach-input:focus {{
                 border-color: var(--accent-blue);
-                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+                box-shadow: 0 0 0 2px rgba(40, 120, 240, 0.2);
             }}
 
             .quality-box {{
-                background: #0B121E;
-                border: 1px solid #23324A;
+                background: #F8FAFD;
+                border: 1px solid #DCE7F5;
                 border-radius: 10px;
                 padding: 12px 16px;
                 display: flex;
@@ -869,8 +869,8 @@ def render_sign_to_speech_component():
             }}
 
             .learning-summary-box {{
-                background: rgba(139, 92, 246, 0.08);
-                border: 1px solid rgba(139, 92, 246, 0.35);
+                background: rgba(139, 92, 246, 0.06);
+                border: 1px solid rgba(139, 92, 246, 0.25);
                 border-radius: 12px;
                 padding: 16px 20px;
                 display: flex;
@@ -882,13 +882,13 @@ def render_sign_to_speech_component():
                 display: flex;
                 justify-content: space-between;
                 font-size: 0.88rem;
-                color: #94A3B8;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                color: #64748B;
+                border-bottom: 1px solid #E2E8F0;
                 padding-bottom: 6px;
             }}
 
             .summary-item-row b {{
-                color: #F8FAFC;
+                color: #14213D;
             }}
 
             /* ===================================================
@@ -2623,34 +2623,56 @@ def render_sign_to_speech_component():
 def render_sign_to_speech_page():
     """Renders the full Sign-to-Speech page with matching header and documentation."""
     
-    # Modern SignVision Hero Card
+    # Top Product Bar
     st.markdown(
         """
-        <div style="
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
-            border-radius: 18px;
-            padding: 24px 28px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
-        ">
-            <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-                <div style="max-width: 700px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                        <span style="font-size: 1.2rem;">📷</span>
-                        <span style="font-size: 0.76rem; font-weight: 700; color: #5B5CEB; letter-spacing: 0.06em; text-transform: uppercase;">SignVision Engine</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 16px; margin-bottom: 18px; box-shadow: var(--card-shadow);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 0.88rem; font-weight: 800; color: #14213D; letter-spacing: 0.02em; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
+                    <span style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #2878F0 0%, #8B5CF6 100%); color: #FFFFFF; font-size: 0.95rem;">🤟</span> SIGNBRIDGE AI
+                </span>
+                <span style="color: #DCE7F5; font-size: 1.0rem;">|</span>
+                <span style="font-size: 0.78rem; color: #64748B; font-weight: 500; letter-spacing: 0.01em;">
+                    Two-Way AI Accessibility Platform
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #ECFDF5; border: 1px solid #A7F3D0; padding: 5px 14px; border-radius: 999px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.08);">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                <span style="font-size: 0.72rem; font-weight: 800; color: #047857; letter-spacing: 0.06em;">AI SYSTEM ONLINE</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Sign to Speech Hero Card — "Communication Command Panel"
+    st.markdown(
+        """
+        <div class="hero-command-panel">
+            <span class="corner-tick tick-tl"></span>
+            <span class="corner-tick tick-tr"></span>
+            <span class="corner-tick tick-bl"></span>
+            <span class="corner-tick tick-br"></span>
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; position: relative; z-index: 1;">
+                <div style="max-width: 680px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.25rem;">🤟</span>
+                        <span style="font-size: 0.76rem; font-weight: 800; color: #2878F0; letter-spacing: 0.08em; text-transform: uppercase;">SIGN TO SPEECH</span>
+                        <span style="background: #EAF3FF; color: #2878F0; font-size: 0.68rem; padding: 3px 10px; border-radius: 6px; font-weight: 700; border: 1px solid #BFDBFE;">GESTURE RECOGNITION STUDIO</span>
                     </div>
-                    <h2 style="margin: 0; font-size: 1.65rem; color: #0F172A; font-weight: 800; letter-spacing: -0.02em;">
-                        Real-time visual sign recognition
-                    </h2>
-                    <p style="margin: 6px 0 0 0; color: #64748B; font-size: 0.90rem; line-height: 1.5;">
-                        MediaPipe hand landmark tracking converts physical gestures into instant captions and clear speech synthesis.
+                    <h1 style="margin: 0; font-size: 1.95rem; color: #14213D; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; font-family: var(--font-heading);">
+                        Turn gestures into <span style="background: linear-gradient(135deg, #2878F0 0%, #8B5CF6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">spoken communication</span>
+                    </h1>
+                    <p style="margin: 10px 0 0 0; color: #64748B; font-size: 0.94rem; line-height: 1.6;">
+                        Real-time MediaPipe hand tracking converts recognized signs directly into live captions and natural text-to-speech voice.
                     </p>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                    <span style="background: rgba(91,92,235,0.08); color: #5B5CEB; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 0.78rem; border: 1px solid rgba(91,92,235,0.20);">⚡ 24 Everyday Signs</span>
-                    <span style="background: rgba(20,184,166,0.10); color: #0D9488; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 0.78rem; border: 1px solid rgba(20,184,166,0.25);">📷 MediaPipe Hands</span>
-                    <span style="background: rgba(16,185,129,0.10); color: #059669; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 0.78rem; border: 1px solid rgba(16,185,129,0.25);">🔊 Instant TTS</span>
+                    <span class="capability-chip">⚡ 24 Signs</span>
+                    <span class="capability-chip">🧠 Teach Signs</span>
+                    <span class="capability-chip">📷 MediaPipe Hands</span>
+                    <span class="capability-chip">🤖 ML Hybrid Engine</span>
+                    <span class="capability-chip">🔊 Web Speech TTS</span>
                 </div>
             </div>
         </div>
